@@ -7,6 +7,23 @@ import styles from '../styles/Home.module.css'
 import { RINKEBY_721_CONTRACT_ADDRESS, abi } from '../utils/contract'
 import { truncateAddress } from '../utils/helpers'
 
+const JSONdataUI = ({ data }) => {
+  const { name, description, image, attributes } = data
+  return (
+    <div className={styles.card}>
+      <p>Name: {name}</p>
+      <p>Description: {description}</p>
+      <p>Image: {image}</p>
+      {attributes &&
+        attributes.map((att) => (
+          <code key={att.trait_type} style={{ whiteSpace: 'pre' }}>
+            trait_type: {att.trait_type}, value: {att.value}
+          </code>
+        ))}
+    </div>
+  )
+}
+
 export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false)
   const [account, setAccount] = useState()
@@ -81,7 +98,6 @@ export default function Home() {
         const data = await response.json()
         setAllTokenData((prev) => [...prev, data])
       }
-      console.log('all data: ', allTokenData)
     } catch (error) {
       console.log(error)
     } finally {
@@ -126,8 +142,17 @@ export default function Home() {
       <div className={styles.main}>
         {renderButton()}
         <p>{`Account: ${truncateAddress(account)}`}</p>
-        {numOfAssets && <p>{`Number of assets: ${numOfAssets}`}</p>}
-        {allTokenData.length > 0 && <div></div>}
+        {numOfAssets && (
+          <div className={styles.container_flex_column}>
+            <p>{`Number of assets: ${numOfAssets}`}</p>
+            <div className={styles.card_group}>
+              {allTokenData.length > 0 &&
+                allTokenData.map((data) => (
+                  <JSONdataUI key={data.name} data={data} />
+                ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
