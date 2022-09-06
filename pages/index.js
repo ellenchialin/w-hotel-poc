@@ -144,7 +144,9 @@ export default function Home() {
         <p>{`Account: ${truncateAddress(account)}`}</p>
         {numOfAssets && (
           <div className={styles.container_flex_column}>
-            <p>{`Number of assets: ${numOfAssets}`}</p>
+            <p>{`Number of assets: ${
+              numOfAssets > 0 ? numOfAssets : 'No assets'
+            }`}</p>
             <div className={styles.card_group}>
               {allTokenData.length > 0 &&
                 allTokenData.map((data) => (
