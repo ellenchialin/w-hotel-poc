@@ -9,6 +9,7 @@ import { truncateAddress } from '../utils/helpers'
 
 const JSONdataUI = ({ data }) => {
   const { name, description, image, attributes } = data
+
   return (
     <div className={styles.card}>
       <p>Name: {name}</p>
@@ -26,10 +27,11 @@ const JSONdataUI = ({ data }) => {
 
 export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false)
-  const [account, setAccount] = useState()
+  const [account, setAccount] = useState('')
   const [numOfAssets, setNumOfAssets] = useState()
   const [chainId, setChainId] = useState()
   const [allTokenData, setAllTokenData] = useState([])
+  const [notFoundTokens, setNotFoundTokens] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const web3ModalRef = useRef()
 
@@ -92,14 +94,23 @@ export default function Home() {
 
       // Read data from ipfs
       for (let i = 0; i < tokenURIs.length; i++) {
-        const response = await fetch(
-          `https://gateway.pinata.cloud/ipfs/${tokenURIs[i]}`
-        )
-        const data = await response.json()
-        setAllTokenData((prev) => [...prev, data])
+        try {
+          const response = await fetch(
+            `https://gateway.pinata.cloud/ipfs/${tokenURIs[i]}`
+          )
+
+          console.log('Found token', i)
+
+          const data = await response.json()
+          setAllTokenData((prev) => [...prev, data])
+        } catch (error) {
+          const x = i // to remember i is the current number
+          setNotFoundTokens((prev) => [...prev, x])
+          console.error(`Token ${i} error`, error)
+        }
       }
     } catch (error) {
-      console.log(error)
+      console.error('Error: ', error)
     } finally {
       setIsLoading(false)
     }
@@ -153,6 +164,13 @@ export default function Home() {
                   <JSONdataUI key={data.name} data={data} />
                 ))}
             </div>
+          </div>
+        )}
+        {notFoundTokens.length > 0 && (
+          <div>
+            {notFoundTokens.map((tokenNumber) => (
+              <p key={tokenNumber}>Token {tokenNumber} not found</p>
+            ))}
           </div>
         )}
       </div>
