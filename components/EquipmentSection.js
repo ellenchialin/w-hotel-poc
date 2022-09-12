@@ -1,15 +1,28 @@
 import { useState, useEffect } from 'react'
-import { Contract } from 'ethers'
+import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
+import {
+  useAccount,
+  useContractReads,
+  useContractRead,
+  useProvider
+} from 'wagmi'
 
-import { RINKEBY_721_CONTRACT_ADDRESS, abi } from '../utils/contract'
+import Characters from './Characters'
+import { EQUIPS_CONTRACT_ADDRESS, EQUIPS_ABI } from '../contracts/equips'
+
+const equipsContract = {
+  addressOrName: EQUIPS_CONTRACT_ADDRESS,
+  contractInterface: EQUIPS_ABI,
+  chainId: 4
+}
 
 function EquipmentSection() {
-  const [numOfAssets, setNumOfAssets] = useState()
   const [allTokenData, setAllTokenData] = useState([])
+  const { address } = useAccount()
+  const provider = useProvider()
 
-  const getAssets = async () => {
+  const fetchCharacters = async () => {
     try {
-      const provider = await getProviderOrSigner()
       const NFTcontract = new Contract(
         RINKEBY_721_CONTRACT_ADDRESS,
         abi,
@@ -50,11 +63,29 @@ function EquipmentSection() {
     }
   }
 
-  // useEffect(() => {
-  //   getAssets()
-  // }, [])
+  return (
+    <Flex p={8} backgroundColor='gray.100' borderRadius='md'>
+      <Tabs>
+        <TabList>
+          <Tab>Charaters</Tab>
+          <Tab>Hats</Tab>
+          <Tab>Shoes</Tab>
+        </TabList>
 
-  return <div>EquipmentSection</div>
+        <TabPanels>
+          <TabPanel>
+            <Characters provider={provider} />
+          </TabPanel>
+          <TabPanel>
+            <p>two!</p>
+          </TabPanel>
+          <TabPanel>
+            <p>three!</p>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Flex>
+  )
 }
 
 export default EquipmentSection

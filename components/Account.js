@@ -4,10 +4,8 @@ import { InjectedConnector } from 'wagmi/connectors/injected'
 import { rinkeby } from 'wagmi/chains'
 
 import { truncateAddress } from '../utils/helpers'
-import { useIsMounted } from '../hooks/useIsMounted'
 
 function Account() {
-  const isMounted = useIsMounted()
   const { connect } = useConnect({
     chainId: rinkeby.id,
     connector: new InjectedConnector()
@@ -16,7 +14,7 @@ function Account() {
   const { address, connector, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
 
-  if (isMounted && isConnected) {
+  if (isConnected) {
     return (
       <Flex
         align='center'
@@ -36,20 +34,19 @@ function Account() {
 
   return (
     <Box>
-      {isMounted &&
-        connectors.map((connector) => (
-          <Button
-            key={connector.id}
-            onClick={() => connect({ connector })}
-            disabled={!connector.ready}
-          >
-            Connect with {connector.name}
-            {!connector.ready && ' (unsupported)'}
-            {isLoading &&
-              connector.id === pendingConnector?.id &&
-              ' (connecting)'}
-          </Button>
-        ))}
+      {connectors.map((connector) => (
+        <Button
+          key={connector.id}
+          onClick={() => connect({ connector })}
+          disabled={!connector.ready}
+        >
+          Connect with {connector.name}
+          {!connector.ready && ' (unsupported)'}
+          {isLoading &&
+            connector.id === pendingConnector?.id &&
+            ' (connecting)'}
+        </Button>
+      ))}
 
       {error && <Box>{error.message}</Box>}
     </Box>
