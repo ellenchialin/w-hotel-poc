@@ -2,10 +2,13 @@ import Head from 'next/head'
 import { useState, useEffect, useRef } from 'react'
 import Web3Modal from 'web3modal'
 import { providers, Contract } from 'ethers'
+import { Box, VStack, Flex } from '@chakra-ui/react'
 
 import styles from '../styles/Home.module.css'
+import Account from '../components/Account'
+import EquipmentSection from '../components/EquipmentSection'
 import { RINKEBY_721_CONTRACT_ADDRESS, abi } from '../utils/contract'
-import { truncateAddress } from '../utils/helpers'
+import RenderSection from '../components/RenderSection'
 
 const JSONdataUI = ({ data }) => {
   const { name, description, image, attributes } = data
@@ -31,7 +34,6 @@ export default function Home() {
   const [numOfAssets, setNumOfAssets] = useState()
   const [chainId, setChainId] = useState()
   const [allTokenData, setAllTokenData] = useState([])
-  const [notFoundTokens, setNotFoundTokens] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const web3ModalRef = useRef()
 
@@ -56,15 +58,6 @@ export default function Home() {
       return web3Provider
     } catch (error) {
       console.log(error)
-    }
-  }
-
-  const connectWallet = async () => {
-    try {
-      await getProviderOrSigner()
-      setWalletConnected(true)
-    } catch (error) {
-      console.error(error)
     }
   }
 
@@ -105,7 +98,6 @@ export default function Home() {
           setAllTokenData((prev) => [...prev, data])
         } catch (error) {
           const x = i // to remember i is the current number
-          setNotFoundTokens((prev) => [...prev, x])
           console.error(`Token ${i} error`, error)
         }
       }
@@ -116,33 +108,6 @@ export default function Home() {
     }
   }
 
-  const renderButton = () => {
-    if (walletConnected) {
-      return (
-        <button onClick={getAssets} className={styles.button}>
-          {isLoading ? 'Loading...' : 'Show assets'}
-        </button>
-      )
-    } else {
-      return (
-        <button onClick={connectWallet} className={styles.button}>
-          Connect wallet
-        </button>
-      )
-    }
-  }
-
-  useEffect(() => {
-    if (!walletConnected) {
-      web3ModalRef.current = new Web3Modal({
-        network: 'rinkeby',
-        providerOptions: {},
-        disableInjectedProvider: false
-      })
-      connectWallet()
-    }
-  }, [walletConnected])
-
   return (
     <div className={styles.container}>
       <Head>
@@ -150,9 +115,16 @@ export default function Home() {
         <meta name='description' content='w-hotel-poc' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
-      <div className={styles.main}>
-        {renderButton()}
-        <p>{`Account: ${truncateAddress(account)}`}</p>
+      <Box p={8}>
+        <VStack>
+          <Account />
+          <Flex gap={10}>
+            <RenderSection />
+            <EquipmentSection />
+          </Flex>
+        </VStack>
+      </Box>
+      {/* <div className={styles.main}>
         {numOfAssets && (
           <div className={styles.container_flex_column}>
             <p>{`Number of assets: ${
@@ -166,14 +138,7 @@ export default function Home() {
             </div>
           </div>
         )}
-        {notFoundTokens.length > 0 && (
-          <div>
-            {notFoundTokens.map((tokenNumber) => (
-              <p key={tokenNumber}>Token {tokenNumber} not found</p>
-            ))}
-          </div>
-        )}
-      </div>
+      </div> */}
     </div>
   )
 }
