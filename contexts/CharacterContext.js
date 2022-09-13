@@ -1,11 +1,4 @@
-import {
-  useContext,
-  createContext,
-  useState,
-  useEffect,
-  useRef,
-  useReducer
-} from 'react'
+import { useContext, createContext, useReducer } from 'react'
 
 const CharacterContext = createContext()
 
@@ -69,6 +62,14 @@ export const CharacterWrapper = ({ children }) => {
     dispatchCharacter({ type: 'CHANGE_CHARACTER', character })
   }
 
+  const changeShoes = (shoes) => {
+    dispatchCharacter({ type: 'CHANGE_SHOES', shoes })
+  }
+
+  const changeHat = (hat) => {
+    dispatchCharacter({ type: 'CHANGE_HAT', hat })
+  }
+
   const resetCharacter = () => {
     dispatchCharacter({ type: 'RESET' })
   }
@@ -78,6 +79,8 @@ export const CharacterWrapper = ({ children }) => {
       value={{
         characterState,
         changeCharacter,
+        changeShoes,
+        changeHat,
         resetCharacter
       }}
     >

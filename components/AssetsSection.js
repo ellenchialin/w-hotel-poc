@@ -8,6 +8,7 @@ import {
 } from '../contracts/character'
 import { EQUIPS_CONTRACT_ADDRESS, EQUIPS_ABI } from '../contracts/equips'
 import Characters from './Characters'
+import EquipCard from './EquipCard'
 import { loopToGetJSONs } from '../utils/helpers'
 
 const EQUIP_TOKEN_IDS = [0, 1, 2, 3]
@@ -25,6 +26,7 @@ function AssetsSection() {
     shoes: [],
     hats: []
   })
+  const [isLoading, setIsLoading] = useState(false)
   const { address } = useAccount()
   const provider = useProvider()
 
@@ -40,10 +42,11 @@ function AssetsSection() {
     signerOrProvider: provider
   })
 
-  const { data: equipsTokenURIs, isLoading } = useContractReads({
+  const { data: equipsTokenURIs } = useContractReads({
     contracts: equipsTokenURICalls,
     cacheOnBlock: true,
     onSuccess(equipsTokenURIs) {
+      setIsLoading(true)
       const allShoesURIs = equipsTokenURIs.slice(0, 2)
       const allHatsURIs = equipsTokenURIs.slice(2, 4)
 
@@ -74,6 +77,8 @@ function AssetsSection() {
       setOwnedCharacters(characterJSONs)
     } catch (error) {
       console.error('Error: ', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -142,12 +147,16 @@ function AssetsSection() {
             </TabPanel>
             <TabPanel>
               {ownedEquips.shoes.map((shoe) => (
-                <p key={shoe.name}>{shoe.name}</p>
+                <EquipCard key={shoe.name} equip={shoe} equipType='shoe'>
+                  {shoe.name}
+                </EquipCard>
               ))}
             </TabPanel>
             <TabPanel>
               {ownedEquips.hats.map((hat) => (
-                <p key={hat.name}>{hat.name}</p>
+                <EquipCard key={hat.name} equip={hat} equipType='hat'>
+                  {hat.name}
+                </EquipCard>
               ))}
             </TabPanel>
           </TabPanels>

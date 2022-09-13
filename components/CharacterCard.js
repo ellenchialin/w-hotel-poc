@@ -1,29 +1,33 @@
-import React from 'react'
-import { Box, AspectRatio, Image } from '@chakra-ui/react'
+import { AspectRatio, Image } from '@chakra-ui/react'
 import { useCharacterContext } from '../contexts/CharacterContext'
 
 function CharacterCard({ character }) {
   const { name, image } = character
-  // const imageCID = image.slice(7)
+  const imageCID = image.slice(7)
 
   const { characterState, changeCharacter } = useCharacterContext()
-  const bgColor = characterState.character === name ? 'gray.500' : 'gray.300'
+  const borderColor = characterState.character === name ? '2px solid black' : ''
 
   const handleSelect = () => {
     changeCharacter(name)
   }
 
   return (
-    <Box
-      w='100px'
-      h='100px'
-      backgroundColor={bgColor}
+    <AspectRatio
+      width='120px'
+      ratio={1}
       cursor='pointer'
-      _hover={{ backgroundColor: 'gray.500' }}
+      _hover={{ boxShadow: 'lg' }}
+      border={borderColor}
+      borderRadius='md'
       onClick={handleSelect}
     >
-      {name}
-    </Box>
+      <Image
+        src={`https://minter.mypinata.cloud/ipfs/${imageCID}`}
+        alt={name}
+        borderRadius='sm'
+      />
+    </AspectRatio>
   )
 }
 
