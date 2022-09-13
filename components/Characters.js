@@ -1,5 +1,3 @@
-import { useState, useEffect, useRef } from 'react'
-import { useAccount, useContractRead, useContract } from 'wagmi'
 import { Flex } from '@chakra-ui/react'
 
 import CharacterCard from './CharacterCard'

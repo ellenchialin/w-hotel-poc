@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box } from '@chakra-ui/react'
+import { Box, AspectRatio, Image } from '@chakra-ui/react'
 import { useCharacterContext } from '../contexts/CharacterContext'
 
 function CharacterCard({ character }) {

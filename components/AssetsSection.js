@@ -1,34 +1,32 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
-import {
-  useAccount,
-  useContractReads,
-  useContractRead,
-  useContract,
-  useProvider
-} from 'wagmi'
+import { useAccount, useContractReads, useContract, useProvider } from 'wagmi'
 
 import {
   CHARACTER_CONTRACT_ADDRESS,
   CHARACTER_ABI
 } from '../contracts/character'
 import { EQUIPS_CONTRACT_ADDRESS, EQUIPS_ABI } from '../contracts/equips'
-import { useCharacterContext } from '../contexts/CharacterContext'
 import Characters from './Characters'
+import { loopToGetJSONs } from '../utils/helpers'
 
-const equipsContract = {
+const EQUIP_TOKEN_IDS = [0, 1, 2, 3]
+
+const equipsTokenURICalls = EQUIP_TOKEN_IDS.map((id) => ({
   addressOrName: EQUIPS_CONTRACT_ADDRESS,
   contractInterface: EQUIPS_ABI,
-  chainId: 4
-}
+  functionName: 'uri',
+  args: [id]
+}))
 
 function AssetsSection() {
-  const effectRan = useRef(false)
+  const [ownedCharacters, setOwnedCharacters] = useState([])
+  const [ownedEquips, setOwnedEquips] = useState({
+    shoes: [],
+    hats: []
+  })
   const { address } = useAccount()
   const provider = useProvider()
-  const [ownedCharacters, setOwnedCharacters] = useState([])
-
-  const { characterState } = useCharacterContext()
 
   const characterContract = useContract({
     addressOrName: CHARACTER_CONTRACT_ADDRESS,
@@ -36,12 +34,29 @@ function AssetsSection() {
     signerOrProvider: provider
   })
 
-  const fetchCharacters = async (accountAddress) => {
+  const equipsContract = useContract({
+    addressOrName: EQUIPS_CONTRACT_ADDRESS,
+    contractInterface: EQUIPS_ABI,
+    signerOrProvider: provider
+  })
+
+  const { data: equipsTokenURIs, isLoading } = useContractReads({
+    contracts: equipsTokenURICalls,
+    cacheOnBlock: true,
+    onSuccess(equipsTokenURIs) {
+      const allShoesURIs = equipsTokenURIs.slice(0, 2)
+      const allHatsURIs = equipsTokenURIs.slice(2, 4)
+
+      // fetch assets
+      fetchOwnedCharacters(address)
+      fetchOwnedEquips(address, allShoesURIs, allHatsURIs)
+    }
+  })
+
+  const fetchOwnedCharacters = async (accountAddress) => {
     try {
       // Get assets
       const assets = await characterContract.balanceOf(accountAddress)
-
-      console.log('Number of assets: ', assets.toNumber())
 
       // Get token URIs
       const tokenURIs = []
@@ -53,62 +68,90 @@ function AssetsSection() {
         const tokenURI = await characterContract.tokenURI(tokenId.toNumber())
         tokenURIs.push(tokenURI.slice(7))
       }
-      console.log('Token URIs: ', tokenURIs)
 
       // Read data from ipfs
-      for (let i = 0; i < tokenURIs.length; i++) {
-        try {
-          const response = await fetch(
-            `https://gateway.pinata.cloud/ipfs/${tokenURIs[i]}`
-          )
-
-          console.log('Found token', i)
-
-          const data = await response.json()
-          setOwnedCharacters((prev) => [...prev, data])
-        } catch (error) {
-          console.error(`Token ${i} error`, error)
-        }
-      }
+      const characterJSONs = await loopToGetJSONs(tokenURIs)
+      setOwnedCharacters(characterJSONs)
     } catch (error) {
       console.error('Error: ', error)
     }
   }
 
-  useEffect(() => {
-    // for useEffect to run only once in dev mode
-    if (effectRan.current === true || process.env.NODE_ENV !== 'development') {
-      fetchCharacters(address)
-    }
+  const fetchOwnedEquips = async (accountAddress, allShoes, allHats) => {
+    try {
+      // Get owned assets
+      const accountsArray = Array.from({ length: 4 }, () => accountAddress)
+      const rawAssets = await equipsContract.balanceOfBatch(
+        accountsArray,
+        EQUIP_TOKEN_IDS
+      )
+      const numberOfAssets = rawAssets.map((asset) => asset.toNumber())
+      const numberOfShoes = numberOfAssets.slice(0, 2)
+      const numberOfHats = numberOfAssets.slice(2, 4)
 
-    return () => {
-      console.log('unmounted')
-      effectRan.current = true
-    }
-  }, [])
+      const ownedShoesURIs = numberOfShoes.map((num, index) => {
+        if (num !== 0) {
+          return allShoes[index]
+        }
+      })
+      const ownedHatsURIs = numberOfHats.map((num, index) => {
+        if (num !== 0) {
+          return allHats[index]
+        }
+      })
+      const ownedShoesCIDs = ownedShoesURIs.map((uri) => uri.slice(7))
+      const ownedHatsCIDs = ownedHatsURIs.map((uri) => uri.slice(7))
 
-  console.log('characterState: ', characterState)
+      // Read shoes data from ipfs
+      const shoesJSONs = await loopToGetJSONs(ownedShoesCIDs)
+      const hatsJSONs = await loopToGetJSONs(ownedHatsCIDs)
+
+      setOwnedEquips({
+        shoes: shoesJSONs,
+        hats: hatsJSONs
+      })
+    } catch (error) {
+      console.error('Error', error)
+    }
+  }
+
+  // console.log('characterState: ', characterState)
 
   return (
-    <Flex p={8} backgroundColor='gray.100' borderRadius='md'>
+    <Flex
+      w='full'
+      maxW='500px'
+      h='500px'
+      p={8}
+      backgroundColor='gray.100'
+      borderRadius='md'
+    >
       <Tabs>
         <TabList>
           <Tab>Charaters</Tab>
-          <Tab>Hats</Tab>
           <Tab>Shoes</Tab>
+          <Tab>Hats</Tab>
         </TabList>
 
-        <TabPanels>
-          <TabPanel>
-            <Characters ownedCharacters={ownedCharacters} />
-          </TabPanel>
-          <TabPanel>
-            <p>two!</p>
-          </TabPanel>
-          <TabPanel>
-            <p>three!</p>
-          </TabPanel>
-        </TabPanels>
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : (
+          <TabPanels>
+            <TabPanel>
+              <Characters ownedCharacters={ownedCharacters} />
+            </TabPanel>
+            <TabPanel>
+              {ownedEquips.shoes.map((shoe) => (
+                <p key={shoe.name}>{shoe.name}</p>
+              ))}
+            </TabPanel>
+            <TabPanel>
+              {ownedEquips.hats.map((hat) => (
+                <p key={hat.name}>{hat.name}</p>
+              ))}
+            </TabPanel>
+          </TabPanels>
+        )}
       </Tabs>
     </Flex>
   )
