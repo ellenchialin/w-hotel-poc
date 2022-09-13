@@ -1,14 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import {
   useAccount,
   useContractReads,
   useContractRead,
+  useContract,
   useProvider
 } from 'wagmi'
 
-import Characters from './Characters'
+import {
+  CHARACTER_CONTRACT_ADDRESS,
+  CHARACTER_ABI
+} from '../contracts/character'
 import { EQUIPS_CONTRACT_ADDRESS, EQUIPS_ABI } from '../contracts/equips'
+import { useCharacterContext } from '../contexts/CharacterContext'
+import Characters from './Characters'
 
 const equipsContract = {
   addressOrName: EQUIPS_CONTRACT_ADDRESS,
@@ -16,29 +22,35 @@ const equipsContract = {
   chainId: 4
 }
 
-function EquipmentSection() {
-  const [allTokenData, setAllTokenData] = useState([])
+function AssetsSection() {
+  const effectRan = useRef(false)
   const { address } = useAccount()
   const provider = useProvider()
+  const [ownedCharacters, setOwnedCharacters] = useState([])
 
-  const fetchCharacters = async () => {
+  const { characterState } = useCharacterContext()
+
+  const characterContract = useContract({
+    addressOrName: CHARACTER_CONTRACT_ADDRESS,
+    contractInterface: CHARACTER_ABI,
+    signerOrProvider: provider
+  })
+
+  const fetchCharacters = async (accountAddress) => {
     try {
-      const NFTcontract = new Contract(
-        RINKEBY_721_CONTRACT_ADDRESS,
-        abi,
-        provider
-      )
-
       // Get assets
-      const assets = await NFTcontract.balanceOf(account)
-      setNumOfAssets(assets.toNumber())
+      const assets = await characterContract.balanceOf(accountAddress)
+
       console.log('Number of assets: ', assets.toNumber())
 
       // Get token URIs
-      let tokenURIs = []
+      const tokenURIs = []
       for (let i = 0; i < assets.toNumber(); i++) {
-        const tokenId = await NFTcontract.tokenOfOwnerByIndex(account, i)
-        const tokenURI = await NFTcontract.tokenURI(tokenId.toNumber())
+        const tokenId = await characterContract.tokenOfOwnerByIndex(
+          accountAddress,
+          i
+        )
+        const tokenURI = await characterContract.tokenURI(tokenId.toNumber())
         tokenURIs.push(tokenURI.slice(7))
       }
       console.log('Token URIs: ', tokenURIs)
@@ -53,7 +65,7 @@ function EquipmentSection() {
           console.log('Found token', i)
 
           const data = await response.json()
-          setAllTokenData((prev) => [...prev, data])
+          setOwnedCharacters((prev) => [...prev, data])
         } catch (error) {
           console.error(`Token ${i} error`, error)
         }
@@ -62,6 +74,20 @@ function EquipmentSection() {
       console.error('Error: ', error)
     }
   }
+
+  useEffect(() => {
+    // for useEffect to run only once in dev mode
+    if (effectRan.current === true || process.env.NODE_ENV !== 'development') {
+      fetchCharacters(address)
+    }
+
+    return () => {
+      console.log('unmounted')
+      effectRan.current = true
+    }
+  }, [])
+
+  console.log('characterState: ', characterState)
 
   return (
     <Flex p={8} backgroundColor='gray.100' borderRadius='md'>
@@ -74,7 +100,7 @@ function EquipmentSection() {
 
         <TabPanels>
           <TabPanel>
-            <Characters provider={provider} />
+            <Characters ownedCharacters={ownedCharacters} />
           </TabPanel>
           <TabPanel>
             <p>two!</p>
@@ -88,4 +114,4 @@ function EquipmentSection() {
   )
 }
 
-export default EquipmentSection
+export default AssetsSection

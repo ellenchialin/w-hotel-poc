@@ -5,7 +5,7 @@ import { useAccount } from 'wagmi'
 import styles from '../styles/Home.module.css'
 import Account from '../components/Account'
 import { useIsMounted } from '../hooks/useIsMounted'
-import EquipmentSection from '../components/EquipmentSection'
+import AssetsSection from '../components/AssetsSection'
 import RenderSection from '../components/RenderSection'
 
 export default function Home() {
@@ -30,9 +30,9 @@ export default function Home() {
             <>
               <Account />
               {isConnected && (
-                <Flex gap={10}>
+                <Flex gap={40}>
                   <RenderSection />
-                  <EquipmentSection />
+                  <AssetsSection />
                 </Flex>
               )}
             </>

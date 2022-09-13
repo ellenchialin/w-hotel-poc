@@ -1,13 +1,16 @@
 import React from 'react'
 import { Box } from '@chakra-ui/react'
+import { useCharacterContext } from '../contexts/CharacterContext'
 
-function CharacterCard({ character, isSelected, setSelectedCharacter }) {
+function CharacterCard({ character }) {
   const { name, image } = character
   // const imageCID = image.slice(7)
-  const bgColor = isSelected ? 'gray.500' : 'gray.300'
+
+  const { characterState, changeCharacter } = useCharacterContext()
+  const bgColor = characterState.character === name ? 'gray.500' : 'gray.300'
 
   const handleSelect = () => {
-    setSelectedCharacter(name)
+    changeCharacter(name)
   }
 
   return (

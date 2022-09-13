@@ -4,7 +4,7 @@ import { InjectedConnector } from 'wagmi/connectors/injected'
 import { publicProvider } from 'wagmi/providers/public'
 import { infuraProvider } from 'wagmi/providers/infura'
 
-import { WalletWrapper } from '../contexts/WalletContext'
+import { CharacterWrapper } from '../contexts/CharacterContext'
 
 const { chains, provider } = configureChains(
   [chain.rinkeby],
@@ -25,7 +25,9 @@ function MyApp({ Component, pageProps }) {
   return (
     <WagmiConfig client={client}>
       <ChakraProvider>
-        <Component {...pageProps} />
+        <CharacterWrapper>
+          <Component {...pageProps} />
+        </CharacterWrapper>
       </ChakraProvider>
     </WagmiConfig>
   )
