@@ -26,7 +26,7 @@ function AssetsSection() {
     shoes: [],
     hats: []
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const { address } = useAccount()
   const provider = useProvider()
 
@@ -46,7 +46,6 @@ function AssetsSection() {
     contracts: equipsTokenURICalls,
     cacheOnBlock: true,
     onSuccess(equipsTokenURIs) {
-      setIsLoading(true)
       const allShoesURIs = equipsTokenURIs.slice(0, 2)
       const allHatsURIs = equipsTokenURIs.slice(2, 4)
 
