@@ -40,11 +40,11 @@ const characterReducer = (state, action) => {
         shoes: ''
       }
 
-    case 'RESET':
+    case 'REMOVE_ALL_EQUIPS':
       return {
-        character: '',
-        hat: '',
-        shoes: ''
+        ...state,
+        shoes: '',
+        hat: ''
       }
 
     default:
@@ -70,8 +70,16 @@ export const CharacterWrapper = ({ children }) => {
     dispatchCharacter({ type: 'CHANGE_HAT', hat })
   }
 
-  const resetCharacter = () => {
-    dispatchCharacter({ type: 'RESET' })
+  const removeShoes = () => {
+    dispatchCharacter({ type: 'REMOVE_SHOES' })
+  }
+
+  const removeHat = () => {
+    dispatchCharacter({ type: 'REMOVE_HAT' })
+  }
+
+  const removeAllEquips = () => {
+    dispatchCharacter({ type: 'REMOVE_ALL_EQUIPS' })
   }
 
   return (
@@ -81,7 +89,9 @@ export const CharacterWrapper = ({ children }) => {
         changeCharacter,
         changeShoes,
         changeHat,
-        resetCharacter
+        removeShoes,
+        removeHat,
+        removeAllEquips
       }}
     >
       {children}

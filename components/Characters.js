@@ -6,9 +6,13 @@ function Characters({ ownedCharacters }) {
   return (
     <div>
       <Flex gap={2} wrap='wrap'>
-        {ownedCharacters.map((ca) => (
-          <CharacterCard key={ca.name} character={ca} />
-        ))}
+        {ownedCharacters.length > 0 ? (
+          ownedCharacters.map((ca) => (
+            <CharacterCard key={ca.name} character={ca} />
+          ))
+        ) : (
+          <p>No character asset under this account</p>
+        )}
       </Flex>
     </div>
   )

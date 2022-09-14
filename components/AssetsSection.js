@@ -135,7 +135,7 @@ function AssetsSection() {
         <TabList>
           <Tab>Charaters</Tab>
           <Tab>Shoes</Tab>
-          <Tab>Hats</Tab>
+          <Tab>Head</Tab>
         </TabList>
 
         {isLoading ? (
